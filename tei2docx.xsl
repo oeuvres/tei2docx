@@ -37,6 +37,31 @@
     <xsl:apply-templates select="*|comment()"/>
   </xsl:template>
   <xsl:template match=" tei:div | tei:div1 | tei:div2 | tei:div3 | tei:div4 | tei:div5 | tei:div6 | tei:div7" priority="0">
+    <!-- Poems, insert a continuous section break, will restart numbering -->
+    <xsl:if test="@type='poem'">
+      <w:p w:rsidR="00C265AC" w:rsidRDefault="00C265AC" w:rsidP="00C265AC">
+        <w:pPr>
+          <w:sectPr>
+            <w:type w:val="continuous"/>
+            <w:lnNumType w:countBy="5" w:restart="newSection"/>
+            <!--
+            <w:headerReference w:type="even" r:id="rId12"/>
+            <w:headerReference w:type="default" r:id="rId13"/>
+            <w:footerReference w:type="even" r:id="rId14"/>
+            <w:footerReference w:type="default" r:id="rId15"/>
+            <w:headerReference w:type="first" r:id="rId16"/>
+            <w:footerReference w:type="first" r:id="rId17"/>
+            <w:pgSz w:w="11906" w:h="16838"/>
+            <w:pgMar w:top="1418" w:right="1418" w:bottom="1418" w:left="1418" w:header="0" w:footer="0" w:gutter="0"/>
+            <w:lnNumType w:countBy="5" w:restart="newSection"/>
+            <w:cols w:space="720"/>
+            <w:formProt w:val="0"/>
+            <w:docGrid w:linePitch="360" w:charSpace="-6145"/>
+            -->
+          </w:sectPr>
+        </w:pPr>
+      </w:p>
+    </xsl:if>
     <xsl:if test="local-name(*[local-name() != 'index'][1]) != 'head'">
       <w:p>
         <w:pPr>
@@ -270,44 +295,39 @@
   </xsl:template>
   <xsl:template match="tei:l" name="l">
     <xsl:value-of select="$lf"/>
-    <w:p>
-      <w:pPr>
-        <w:pStyle>
-          <xsl:attribute name="w:val">
-            <xsl:choose>
-              <xsl:when test="ancestor::tei:quote">quotel</xsl:when>
-              <xsl:otherwise>l</xsl:otherwise>
-            </xsl:choose>
-          </xsl:attribute>
-        </w:pStyle>
-        <xsl:call-template name="rend-p">
-          <xsl:with-param name="rend" select="concat(@rend, ' ', parent::*/@rend, ' ', ancestor::tei:quote/@rend)"/>
-        </xsl:call-template>
-      </w:pPr>
-      <xsl:call-template name="anchor"/>
-      <xsl:apply-templates/>
-    </w:p>
+    <xsl:choose>
+      <!-- if empty verse, probably line group separator -->
+      <xsl:when test=". = ''">
+        <w:p/>
+      </xsl:when>
+      <xsl:otherwise>
+        <w:p>
+          <w:pPr>
+            <w:pStyle>
+              <xsl:attribute name="w:val">
+                <xsl:choose>
+                  <xsl:when test="ancestor::tei:quote">quotel</xsl:when>
+                  <xsl:otherwise>l</xsl:otherwise>
+                </xsl:choose>
+              </xsl:attribute>
+            </w:pStyle>
+            <xsl:call-template name="rend-p">
+              <xsl:with-param name="rend" select="concat(@rend, ' ', parent::*/@rend, ' ', ancestor::tei:quote/@rend)"/>
+            </xsl:call-template>
+          </w:pPr>
+          <xsl:call-template name="anchor"/>
+          <xsl:apply-templates/>
+        </w:p>
+      </xsl:otherwise>
+    </xsl:choose>
   </xsl:template>
   <xsl:template match="tei:lg">
     <xsl:value-of select="$lf"/>
     <xsl:apply-templates/>
-    <!-- séparateur vide de strophe -->
+    <!-- Line group separator, empty para, not in style <l> for verse numbering -->
     <xsl:if test="following-sibling::*[1][self::tei:lg]">
       <xsl:value-of select="$lf"/>
-      <w:p>
-        <w:pPr>
-          <w:pStyle>
-            <xsl:attribute name="w:val">
-              <xsl:choose>
-                <xsl:when test="ancestor::tei:quote">quotel</xsl:when>
-                <xsl:otherwise>l</xsl:otherwise>
-              </xsl:choose>
-            </xsl:attribute>
-          </w:pStyle>
-          <xsl:call-template name="rend-p"/>
-        </w:pPr>
-        <xsl:call-template name="anchor"/>
-      </w:p>
+      <w:p/>
     </xsl:if>
   </xsl:template>
   <!-- Index mark, TODO -->
@@ -598,7 +618,7 @@
   <xsl:template name="rend-c">
     <xsl:param name="rend" select="@rend"/>
     <xsl:variable name="string" select="concat(' ', normalize-space($rend), ' ')"/>
-    <xsl:if test="contains($string, ' i ') or contains($string, ' ital')">
+    <xsl:if test="contains($string, ' i ') or contains($string, ' ital') or contains($string, ' refrain ')">
       <w:i/>
     </xsl:if>
     <xsl:if test="contains($string, ' u ') or contains($string, ' under') or contains($string, ' sous') ">
