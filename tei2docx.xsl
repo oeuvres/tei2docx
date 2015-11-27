@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<xsl:transform xmlns:xsl="http://www.w3.org/1999/XSL/Transform" version="1.1"
+<xsl:transform xmlns:xsl="http://www.w3.org/1999/XSL/Transform" version="1.0"
    xmlns:m="http://schemas.openxmlformats.org/officeDocument/2006/math"
    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
    xmlns:o="urn:schemas-microsoft-com:office:office"
@@ -282,7 +282,7 @@
     </w:tc>
   </xsl:template>
   <!-- éléments génériques de niveau bloc -->
-  <xsl:template match=" tei:back/* | tei:body/* | tei:div/* | tei:div1/* | tei:div2/* | tei:div3/* | tei:div4/* | tei:front/* | tei:sp/*" name="block" priority="-1">
+  <xsl:template match=" tei:back/* | tei:body/* | tei:cell/tei:dateline | tei:cell/tei:salute | tei:cell/tei:signed | tei:div/* | tei:div1/* | tei:div2/* | tei:div3/* | tei:div4/* | tei:front/* | tei:sp/*" name="block" priority="-1">
     <xsl:param name="style" select="local-name()"/>
     <xsl:value-of select="$lf"/>
     <w:p>
@@ -354,6 +354,8 @@
           <w:pPr>
             <w:pStyle w:val="note"/>
           </w:pPr>
+          <xsl:call-template name="anchor"/>
+          <!--
           <w:r>
             <w:br/>
           </w:r>
@@ -370,7 +372,7 @@
           <w:r>
             <w:tab/>
           </w:r>
-          <xsl:call-template name="anchor"/>
+          -->
           <xsl:apply-templates/>
         </w:p>
       </xsl:when>
@@ -380,7 +382,7 @@
         <xsl:for-each select="*">
           <xsl:choose>
             <xsl:when test="self::tei:quote | self::tei:l | self::tei:lg">
-              <xsl:if test="position() = 1">
+              <xsl:if test="position() = 1 and (../@n|../@xml:id)">
                 <w:p>
                   <xsl:call-template name="anchor"/>
                   <w:r>
@@ -410,10 +412,8 @@
                     </xsl:otherwise>
                   </xsl:choose>
                 </w:pPr>
-                <xsl:if test="position() = 1">
-                  <w:r>
-                    <w:br/>
-                  </w:r>
+                <xsl:if test="position() = 1 and (../@n|../@xml:id)">
+                  <xsl:call-template name="anchor"/>
                   <w:r>
                     <w:rPr>
                       <w:rStyle w:val="alert"/>
@@ -427,7 +427,6 @@
                   <w:r>
                     <w:tab/>
                   </w:r>
-                  <xsl:call-template name="anchor"/>
                 </xsl:if>
                 <xsl:apply-templates/>
               </w:p>
@@ -438,10 +437,10 @@
     </xsl:choose>
     
   </xsl:template>
-  <xsl:template match="tei:argument | tei:figure">
+  <xsl:template match="tei:argument | tei:figure | tei:postscript">
     <xsl:apply-templates select="*"/>
   </xsl:template>
-  <xsl:template match="tei:argument/* | tei:figure/* | tei:quote/tei:p">
+  <xsl:template match="tei:argument/* | tei:figure/* | tei:postscript/* | tei:quote/tei:p">
     <xsl:value-of select="$lf"/>
     <w:p>
       <w:pPr>
@@ -458,7 +457,7 @@
     <xsl:value-of select="$lf"/>
     <xsl:choose>
       <!-- niveau caractère -->
-      <xsl:when test="parent::tei:p or  ../text()[normalize-space(.) != '']">
+      <xsl:when test="parent::tei:p or parent::tei:quote or parent::tei:cell or  ../text()[normalize-space(.) != '']">
         <w:r>
           <w:rPr>
             <w:rStyle w:val="{local-name()}-c"/>
