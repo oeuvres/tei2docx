@@ -1,24 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<xsl:transform xmlns:xsl="http://www.w3.org/1999/XSL/Transform" version="1.0"
-   xmlns:m="http://schemas.openxmlformats.org/officeDocument/2006/math"
-   xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-   xmlns:o="urn:schemas-microsoft-com:office:office"
-   xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"
-   xmlns:v="urn:schemas-microsoft-com:vml"
-   xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main"
-   xmlns:w10="urn:schemas-microsoft-com:office:word"
-   xmlns:w14="http://schemas.microsoft.com/office/word/2010/wordml"
-   xmlns:wne="http://schemas.microsoft.com/office/word/2006/wordml"
-   xmlns:wp="http://schemas.openxmlformats.org/drawingml/2006/wordprocessingDrawing"
-   xmlns:wp14="http://schemas.microsoft.com/office/word/2010/wordprocessingDrawing"
-   xmlns:wpc="http://schemas.microsoft.com/office/word/2010/wordprocessingCanvas"
-   xmlns:wpg="http://schemas.microsoft.com/office/word/2010/wordprocessingGroup"
-   xmlns:wpi="http://schemas.microsoft.com/office/word/2010/wordprocessingInk"
-   xmlns:wps="http://schemas.microsoft.com/office/word/2010/wordprocessingShape"
-   
-   xmlns:tei="http://www.tei-c.org/ns/1.0"
-   exclude-result-prefixes="tei"
-  >
+<xsl:transform xmlns:xsl="http://www.w3.org/1999/XSL/Transform" version="1.0" xmlns:m="http://schemas.openxmlformats.org/officeDocument/2006/math" xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships" xmlns:v="urn:schemas-microsoft-com:vml" xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main" xmlns:w10="urn:schemas-microsoft-com:office:word" xmlns:w14="http://schemas.microsoft.com/office/word/2010/wordml" xmlns:wne="http://schemas.microsoft.com/office/word/2006/wordml" xmlns:wp="http://schemas.openxmlformats.org/drawingml/2006/wordprocessingDrawing" xmlns:wp14="http://schemas.microsoft.com/office/word/2010/wordprocessingDrawing" xmlns:wpc="http://schemas.microsoft.com/office/word/2010/wordprocessingCanvas" xmlns:wpg="http://schemas.microsoft.com/office/word/2010/wordprocessingGroup" xmlns:wpi="http://schemas.microsoft.com/office/word/2010/wordprocessingInk" xmlns:wps="http://schemas.microsoft.com/office/word/2010/wordprocessingShape" xmlns:tei="http://www.tei-c.org/ns/1.0" exclude-result-prefixes="tei">
   <!-- indent "no", needed for OOo -->
   <xsl:output encoding="UTF-8" indent="no" method="xml"/>
   <xsl:strip-space elements="tei:TEI tei:TEI.2 tei:body tei:castList tei:div tei:div1 tei:div2  tei:docDate tei:docImprint tei:docTitle tei:fileDesc tei:front tei:group tei:index tei:listWit tei:publicationStmp tei:publicationStmt tei:sourceDesc tei:SourceDesc tei:sources tei:text tei:teiHeader tei:text tei:titleStmt"/>
@@ -39,12 +20,13 @@
   <xsl:template match=" tei:div | tei:div1 | tei:div2 | tei:div3 | tei:div4 | tei:div5 | tei:div6 | tei:div7" priority="0">
     <!-- Poems, insert a continuous section break, will restart numbering -->
     <xsl:if test="@type='poem'">
-      <w:p w:rsidR="00C265AC" w:rsidRDefault="00C265AC" w:rsidP="00C265AC">
+      <w:p>
         <w:pPr>
           <w:sectPr>
             <w:type w:val="continuous"/>
             <w:lnNumType w:countBy="5" w:restart="newSection"/>
             <!--
+               w:rsidR="00C265AC" w:rsidRDefault="00C265AC" w:rsidP="00C265AC"
             <w:headerReference w:type="even" r:id="rId12"/>
             <w:headerReference w:type="default" r:id="rId13"/>
             <w:footerReference w:type="even" r:id="rId14"/>
@@ -86,7 +68,8 @@
         -->
       </w:p>
     </xsl:if>
-    <xsl:apply-templates select="*|comment()"/>
+    <xsl:comment> <xsl:value-of select="@xml:id"/> </xsl:comment>
+    <xsl:apply-templates select="*[not(self::tei:index)]|comment()"/>
   </xsl:template>
   <!-- Métadonnées -->
   <xsl:template match="tei:fileDesc/tei:titleStmt/tei:title">
@@ -198,6 +181,16 @@
           <xsl:number count="node()" level="any"/>
         </xsl:attribute>
       </w:bookmarkStart>
+      <w:r>
+        <w:rPr>
+          <w:rStyle w:val="id"/>
+        </w:rPr>
+        <w:t xml:space="preserve">
+          <xsl:text>[</xsl:text>
+          <xsl:value-of select="../@xml:id"/>
+          <xsl:text>] </xsl:text>
+        </w:t>
+      </w:r>
       <w:bookmarkEnd>
         <xsl:attribute name="w:id">
           <xsl:number count="node()" level="any"/>
@@ -218,17 +211,16 @@
     </xsl:if>
   </xsl:template>
   <xsl:template match="tei:head" name="head">
-    <xsl:variable name="count">
+    <xsl:variable name="style">
       <xsl:choose>
-        <!-- not the first head of the section -->
-        <!-- ???
-        <xsl:when test="count(parent::*/*[1] | .) = 2"/>
-        -->
-        <xsl:when test="parent::tei:body | parent::tei:front | parent::tei:back">principal</xsl:when>
-        <xsl:when test="parent::tei:div1">1</xsl:when>
-        <xsl:when test="parent::tei:div2">2</xsl:when>
-        <xsl:when test="parent::tei:div3">3</xsl:when>
+        <!-- subtitle -->
+        <xsl:when test="preceding-sibling::*[1][self::tei:head]">Titre</xsl:when>
+        <xsl:when test="parent::tei:body | parent::tei:front | parent::tei:back">Titreprincipal</xsl:when>
+        <xsl:when test="parent::tei:div1">Titre1</xsl:when>
+        <xsl:when test="parent::tei:div2">Titre2</xsl:when>
+        <xsl:when test="parent::tei:div3">Titre3</xsl:when>
         <xsl:when test="parent::tei:div">
+          <xsl:text>Titre</xsl:text>
           <xsl:value-of select="count(ancestor::tei:div)"/>
         </xsl:when>
       </xsl:choose>
@@ -237,11 +229,18 @@
     <xsl:value-of select="$lf"/>
     <w:p>
       <w:pPr>
-        <w:pStyle w:val="Titre{$count}"/>
+        <w:pStyle w:val="{$style}"/>
       </w:pPr>
       <xsl:call-template name="anchor"/>
       <xsl:apply-templates/>
     </w:p>
+    <xsl:if test="../tei:index and not(preceding-sibling::tei:head)">
+      <w:p>
+        <w:r>
+          <xsl:apply-templates select="../tei:index"/>
+        </w:r>
+      </w:p>
+    </xsl:if>
   </xsl:template>
   <xsl:template match="tei:table">
     <xsl:value-of select="$lf"/>
@@ -331,7 +330,26 @@
     </xsl:if>
   </xsl:template>
   <!-- Index mark, TODO -->
-  <xsl:template match="tei:index"/>
+  <xsl:template match="tei:index">
+     <w:fldChar w:fldCharType="begin"/>
+     <w:instrText xml:space="preserve">
+      <xsl:text>XE "</xsl:text>
+       <xsl:if test="@indexName">
+         <xsl:value-of select="@indexName"/>
+         <xsl:text>:</xsl:text>
+       </xsl:if>
+       <xsl:choose>
+         <xsl:when test="@n">
+           <xsl:value-of select="@n"/>
+         </xsl:when>
+         <xsl:otherwise>
+           <xsl:value-of select="normalize-space(.)"/>
+         </xsl:otherwise>
+       </xsl:choose>
+       <xsl:text>"</xsl:text>
+     </w:instrText>
+    <w:fldChar w:fldCharType="end"/>
+  </xsl:template>
   <xsl:template match="tei:note">
     <xsl:choose>
       <!-- Note de niveau caractère -->
@@ -435,7 +453,6 @@
         </xsl:for-each>
       </xsl:otherwise>
     </xsl:choose>
-    
   </xsl:template>
   <xsl:template match="tei:argument | tei:figure | tei:postscript">
     <xsl:apply-templates select="*"/>
@@ -451,7 +468,6 @@
       <xsl:apply-templates/>
     </w:p>
   </xsl:template>
-
   <!-- Style sémantique de niveau bloc ou caractère -->
   <xsl:template match="tei:bibl | tei:stage">
     <xsl:value-of select="$lf"/>
@@ -554,8 +570,8 @@
         <xsl:call-template name="anchor"/>
         <w:r>
           <w:rPr>
-             <w:rStyle w:val="{local-name()}"/>
-           </w:rPr>
+            <w:rStyle w:val="{local-name()}"/>
+          </w:rPr>
           <w:t>
             <xsl:text>[</xsl:text>
             <xsl:choose>
@@ -569,6 +585,7 @@
             </xsl:choose>
             <xsl:text>]</xsl:text>
           </w:t>
+          <xsl:apply-templates/>
         </w:r>
       </xsl:when>
       <xsl:otherwise>
@@ -576,8 +593,8 @@
           <xsl:call-template name="anchor"/>
           <w:r>
             <w:rPr>
-               <w:rStyle w:val="{local-name()}"/>
-             </w:rPr>
+              <w:rStyle w:val="{local-name()}"/>
+            </w:rPr>
             <w:t>
               <xsl:text>[</xsl:text>
               <xsl:choose>
@@ -591,6 +608,7 @@
               </xsl:choose>
               <xsl:text>]</xsl:text>
             </w:t>
+            <xsl:apply-templates/>
           </w:r>
         </w:p>
       </xsl:otherwise>
@@ -688,7 +706,7 @@
           </xsl:when>
         </xsl:choose>
       </xsl:variable>
-      <w:t xml:space='preserve'><xsl:value-of select="$pre"/><xsl:value-of select="."/><xsl:value-of select="$post"/></w:t>
+      <w:t xml:space="preserve"><xsl:value-of select="$pre"/><xsl:value-of select="."/><xsl:value-of select="$post"/></w:t>
     </w:r>
   </xsl:template>
   <!-- citation, de niveau bloc ou caractère -->
@@ -815,7 +833,6 @@
       -->
       <xsl:when test="normalize-space(.)=''">
         <w:r>
-          <xsl:copy-of select="$rPr"/>
           <w:t xml:space="preserve"> </w:t>
         </w:r>
       </xsl:when>
@@ -899,14 +916,14 @@
     <xsl:choose>
       <xsl:when test="self::comment()">
         <!-- Bug number, ne prend pas comment -->
-        <xsl:number count="node()" level="any"/>  
+        <xsl:number count="node()" level="any"/>
       </xsl:when>
       <xsl:when test="self::tei:ref">
         <xsl:text>ref</xsl:text>
-        <xsl:number level="any"/>  
+        <xsl:number level="any"/>
       </xsl:when>
       <xsl:when test="self::tei:note">
-        <xsl:number level="any"/>  
+        <xsl:number level="any"/>
       </xsl:when>
       <xsl:otherwise>
         <xsl:value-of select="generate-id()"/>
