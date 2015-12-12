@@ -55,18 +55,5 @@
       </xsl:for-each>
     </Relationships>
   </xsl:template>
-  <xsl:template name="rel">
-    <xsl:variable name="target" select="(@target|@ref)[1]"/>
-    <xsl:choose>
-      <!-- Les ancres sont ailleurs -->
-      <xsl:when test="starts-with($target, '#')"/>
-      <xsl:otherwise>
-        <Relationship Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/hyperlink" Target="{$target}" TargetMode="External">
-          <xsl:attribute name="Id">
-            <xsl:call-template name="id"/>
-          </xsl:attribute>
-        </Relationship>
-      </xsl:otherwise>
-    </xsl:choose>
-  </xsl:template>
+
 </xsl:transform>

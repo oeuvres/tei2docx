@@ -25,16 +25,12 @@
   <xsl:import href="tei2docx.xsl"/>
   <xsl:template match="/">
     <Relationships>
-      <xsl:apply-templates select="//tei:note[not(parent::tei:body | parent::tei:div | parent::tei:div1 | parent::tei:div2 | parent::tei:div3 | parent::tei:div4 | parent::tei:div5 | parent::tei:div6 | parent::tei:div7 | parent::tei:div8 | parent::tei:div9 | parent::tei:sp)]"/>
+      <xsl:apply-templates select="//tei:note[not(parent::tei:body | parent::tei:div | parent::tei:div1 | parent::tei:div2 | parent::tei:div3 | parent::tei:div4 | parent::tei:div5 | parent::tei:div6 | parent::tei:div7 | parent::tei:div8 | parent::tei:div9  | ancestor::tei:note | parent::tei:sp)]"/>
     </Relationships>
   </xsl:template>
   <xsl:template match="tei:note">
-    <xsl:for-each select=".//tei:ref | .//tei:graphic[@url]">
-      <Relationship Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/hyperlink" Target="{@target}" TargetMode="External">
-        <xsl:attribute name="Id">
-          <xsl:call-template name="id"/>
-        </xsl:attribute>
-      </Relationship>
+    <xsl:for-each select=".//tei:ref[@target] | .//tei:graphic[@url]">
+      <xsl:call-template name="rel"/>
     </xsl:for-each>
   </xsl:template>
 </xsl:transform>
