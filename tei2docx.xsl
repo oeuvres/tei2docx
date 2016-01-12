@@ -455,10 +455,10 @@
       </xsl:otherwise>
     </xsl:choose>
   </xsl:template>
-  <xsl:template match="tei:argument | tei:figure | tei:postscript">
+  <xsl:template match="tei:argument | tei:entryFree | tei:figure | tei:postscript">
     <xsl:apply-templates select="*"/>
   </xsl:template>
-  <xsl:template match="tei:argument/* | tei:figure/* | tei:postscript/* | tei:quote/tei:p">
+  <xsl:template match="tei:argument/* | tei:entryFree/* | tei:figure/* | tei:postscript/* | tei:quote/tei:p">
     <xsl:value-of select="$lf"/>
     <w:p>
       <w:pPr>
