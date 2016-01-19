@@ -14,10 +14,9 @@
     </w:document>
   </xsl:template>
   <!-- traverser -->
-  <xsl:template match="tei:body | tei:front  | tei:sp | tei:teiHeader | tei:TEI | tei:text | tei:editionStmt | tei:fileDesc | tei:publicationStmt | tei:profileDesc ">
+  <xsl:template match="tei:body | tei:front  | tei:sp | tei:TEI | tei:text ">
     <xsl:apply-templates select="*|comment()"/>
   </xsl:template>
-  <xsl:template match="tei:teiHeader/tei:fileDesc/*/* | tei:teiHeader/*/* "/>
   <xsl:template match=" tei:div | tei:div1 | tei:div2 | tei:div3 | tei:div4 | tei:div5 | tei:div6 | tei:div7" priority="0">
     <!-- Poems, insert a continuous section break, will restart numbering -->
     <xsl:if test="@type='poem'">
@@ -72,7 +71,21 @@
     <xsl:comment> <xsl:value-of select="@xml:id"/> </xsl:comment>
     <xsl:apply-templates select="*[not(self::tei:index)]|comment()"/>
   </xsl:template>
-  <!-- Métadonnées -->
+  <!-- Metadata 
+   Fields handled by Odette ,author,bibl,created,creation,contributor,copyeditor,creator,date,edition,editor,idno,issued,keyword,licence,license,publie,publisher,secretairederedaction,source,subject,sujet,title,translator,
+  -->
+  <xsl:template match="tei:teiHeader">
+    <xsl:apply-templates select="*|comment()"/>
+  </xsl:template>
+  <xsl:template match="tei:teiHeader/*"/>
+  <xsl:template match="tei:teiHeader/tei:fileDesc">
+    <xsl:apply-templates select="*|comment()"/>
+  </xsl:template>
+  <xsl:template match="tei:fileDesc/*" priority="-1"/>
+  <xsl:template match="tei:fileDesc/tei:titleStmt">
+    <xsl:apply-templates select="*|comment()"/>
+  </xsl:template>
+  <xsl:template match="tei:fileDesc/tei:titleStmt/*" priority="-1"/>
   <xsl:template match="tei:fileDesc/tei:titleStmt/tei:title">
     <xsl:call-template name="term">
       <xsl:with-param name="key">title</xsl:with-param>
@@ -88,11 +101,19 @@
       <xsl:with-param name="key">editor</xsl:with-param>
     </xsl:call-template>
   </xsl:template>
+  <xsl:template match="tei:editionStmt">
+    <xsl:apply-templates select="*|comment()"/>
+  </xsl:template>
+  <xsl:template match="tei:editionStmt/*" priority="-1"/>
   <xsl:template match="tei:editionStmt/tei:respStmt">
     <xsl:call-template name="term">
       <xsl:with-param name="key">copyeditor</xsl:with-param>
     </xsl:call-template>
   </xsl:template>
+  <xsl:template match="tei:publicationStmt">
+    <xsl:apply-templates select="*|comment()"/>
+  </xsl:template>
+  <xsl:template match="tei:publicationStmt/*" priority="-1"/>
   <xsl:template match="tei:publicationStmt/tei:publisher">
     <xsl:call-template name="term">
       <xsl:with-param name="key">publisher</xsl:with-param>
@@ -109,20 +130,40 @@
     </xsl:call-template>
   </xsl:template>
   <xsl:template match="tei:availability"/>
+  <xsl:template match="tei:sourceDesc">
+    <xsl:apply-templates select="*|comment()"/>
+  </xsl:template>
+  <xsl:template match="tei:sourceDesc/*" priority="-1"/>
   <xsl:template match="tei:sourceDesc/tei:bibl">
     <xsl:call-template name="term">
       <xsl:with-param name="key">source</xsl:with-param>
     </xsl:call-template>
   </xsl:template>
-  <xsl:template match="tei:creation/tei:date">
+  <xsl:template match="tei:profileDesc">
+    <xsl:apply-templates select="*|comment()"/>
+  </xsl:template>
+  <xsl:template match="tei:profileDesc/*" priority="-1"/>
+  <xsl:template match="tei:profileDesc/tei:creation">
+    <xsl:apply-templates select="tei:date"/>
+  </xsl:template>
+  <xsl:template match="tei:profileDesc/tei:creation/tei:date">
     <xsl:call-template name="term">
       <xsl:with-param name="key">created</xsl:with-param>
     </xsl:call-template>
+  </xsl:template>
+  <xsl:template match="tei:profileDesc/tei:langUsage">
+    <xsl:apply-templates select="tei:language"/>
   </xsl:template>
   <xsl:template match="tei:language">
     <xsl:call-template name="term">
       <xsl:with-param name="key">language</xsl:with-param>
     </xsl:call-template>
+  </xsl:template>
+  <xsl:template match="tei:profileDesc/tei:textClass">
+    <xsl:apply-templates select="tei:keywords"/>
+  </xsl:template>
+  <xsl:template match="tei:profileDesc/tei:textClass/tei:keywords">
+    <xsl:apply-templates select="tei:term"/>
   </xsl:template>
   <xsl:template match="tei:textClass/tei:keywords/tei:term">
     <xsl:call-template name="term">
@@ -160,6 +201,13 @@
           <w:r>
             <w:t>
               <xsl:value-of select="@ident"/>
+            </w:t>
+          </w:r>
+        </xsl:when>
+        <xsl:when test="@key">
+          <w:r>
+            <w:t>
+              <xsl:value-of select="@key"/>
             </w:t>
           </w:r>
         </xsl:when>
@@ -473,6 +521,17 @@
   <xsl:template match="tei:bibl | tei:stage">
     <xsl:value-of select="$lf"/>
     <xsl:choose>
+      <!-- niveau bloc -->
+      <xsl:when test="parent::*[self::tei:quote|self::tei:cell|self::tei:note][tei:p|tei:l]">
+        <w:p>
+          <w:pPr>
+            <w:pStyle w:val="{local-name()}"/>
+            <xsl:call-template name="rend-p"/>
+          </w:pPr>
+          <xsl:call-template name="anchor"/>
+          <xsl:apply-templates/>
+        </w:p>
+      </xsl:when>
       <!-- niveau caractère -->
       <xsl:when test="ancestor::tei:p  or ancestor::tei:note or parent::tei:quote or parent::tei:cell or  ../text()[normalize-space(.) != '']">
         <w:r>
