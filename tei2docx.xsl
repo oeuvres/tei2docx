@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<xsl:transform xmlns:xsl="http://www.w3.org/1999/XSL/Transform" version="1.0" xmlns:m="http://schemas.openxmlformats.org/officeDocument/2006/math" xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships" xmlns:v="urn:schemas-microsoft-com:vml" xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main" xmlns:w10="urn:schemas-microsoft-com:office:word" xmlns:w14="http://schemas.microsoft.com/office/word/2010/wordml" xmlns:wne="http://schemas.microsoft.com/office/word/2006/wordml" xmlns:wp="http://schemas.openxmlformats.org/drawingml/2006/wordprocessingDrawing" xmlns:wp14="http://schemas.microsoft.com/office/word/2010/wordprocessingDrawing" xmlns:wpc="http://schemas.microsoft.com/office/word/2010/wordprocessingCanvas" xmlns:wpg="http://schemas.microsoft.com/office/word/2010/wordprocessingGroup" xmlns:wpi="http://schemas.microsoft.com/office/word/2010/wordprocessingInk" xmlns:wps="http://schemas.microsoft.com/office/word/2010/wordprocessingShape" xmlns:tei="http://www.tei-c.org/ns/1.0" exclude-result-prefixes="tei">
+<xsl:transform exclude-result-prefixes="tei" version="1.0" xmlns:m="http://schemas.openxmlformats.org/officeDocument/2006/math" xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships" xmlns:tei="http://www.tei-c.org/ns/1.0" xmlns:v="urn:schemas-microsoft-com:vml" xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main" xmlns:w10="urn:schemas-microsoft-com:office:word" xmlns:w14="http://schemas.microsoft.com/office/word/2010/wordml" xmlns:wne="http://schemas.microsoft.com/office/word/2006/wordml" xmlns:wp="http://schemas.openxmlformats.org/drawingml/2006/wordprocessingDrawing" xmlns:wp14="http://schemas.microsoft.com/office/word/2010/wordprocessingDrawing" xmlns:wpc="http://schemas.microsoft.com/office/word/2010/wordprocessingCanvas" xmlns:wpg="http://schemas.microsoft.com/office/word/2010/wordprocessingGroup" xmlns:wpi="http://schemas.microsoft.com/office/word/2010/wordprocessingInk" xmlns:wps="http://schemas.microsoft.com/office/word/2010/wordprocessingShape" xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
   <!-- indent "no", needed for OOo -->
   <xsl:output encoding="UTF-8" indent="no" method="xml"/>
   <xsl:strip-space elements="tei:TEI tei:TEI.2 tei:body tei:castList tei:div tei:div1 tei:div2  tei:docDate tei:docImprint tei:docTitle tei:fileDesc tei:front tei:group tei:index tei:listWit tei:publicationStmp tei:publicationStmt tei:sourceDesc tei:SourceDesc tei:sources tei:text tei:teiHeader tei:text tei:titleStmt"/>
@@ -234,7 +234,8 @@
         <w:rPr>
           <w:rStyle w:val="id"/>
         </w:rPr>
-        <w:t xml:space="preserve">
+        <w:t>
+          <xsl:attribute name="xml:space">preserve</xsl:attribute>
           <xsl:text>[</xsl:text>
           <xsl:value-of select="../@xml:id"/>
           <xsl:text>] </xsl:text>
@@ -320,7 +321,7 @@
     <xsl:value-of select="$lf"/>
     <w:tc>
       <xsl:choose>
-        <xsl:when test="not(tei:p) and not(tei:list)">
+        <xsl:when test="not(tei:p) and not(tei:list) and not(tei:quote) and not(tei:l)">
           <xsl:call-template name="p"/>
         </xsl:when>
         <xsl:otherwise>
@@ -381,22 +382,23 @@
   <!-- Index mark, TODO -->
   <xsl:template match="tei:index">
     <w:fldChar w:fldCharType="begin"/>
-    <w:instrText xml:space="preserve">
+    <w:instrText>
+      <xsl:attribute name="xml:space">preserve</xsl:attribute>
       <xsl:text>XE "</xsl:text>
-       <xsl:if test="@indexName">
-         <xsl:value-of select="@indexName"/>
-         <xsl:text>:</xsl:text>
-       </xsl:if>
-       <xsl:choose>
-         <xsl:when test="@n">
-           <xsl:value-of select="@n"/>
-         </xsl:when>
-         <xsl:otherwise>
-           <xsl:value-of select="normalize-space(.)"/>
-         </xsl:otherwise>
-       </xsl:choose>
-       <xsl:text>"</xsl:text>
-     </w:instrText>
+      <xsl:if test="@indexName">
+        <xsl:value-of select="@indexName"/>
+        <xsl:text>:</xsl:text>
+      </xsl:if>
+      <xsl:choose>
+        <xsl:when test="@n">
+          <xsl:value-of select="@n"/>
+        </xsl:when>
+        <xsl:otherwise>
+          <xsl:value-of select="normalize-space(.)"/>
+        </xsl:otherwise>
+      </xsl:choose>
+      <xsl:text>"</xsl:text>
+    </w:instrText>
     <w:fldChar w:fldCharType="end"/>
   </xsl:template>
   <xsl:template match="tei:note">
@@ -775,7 +777,12 @@
           </xsl:when>
         </xsl:choose>
       </xsl:variable>
-      <w:t xml:space="preserve"><xsl:value-of select="$pre"/><xsl:value-of select="."/><xsl:value-of select="$post"/></w:t>
+      <w:t>
+        <xsl:attribute name="xml:space">preserve</xsl:attribute>
+        <xsl:value-of select="$pre"/>
+        <xsl:value-of select="."/>
+        <xsl:value-of select="$post"/>
+      </w:t>
     </w:r>
   </xsl:template>
   <!-- citation, de niveau bloc ou caractère -->
@@ -936,7 +943,12 @@
               </xsl:otherwise>
             </xsl:choose>
           </xsl:variable>
-          <w:t xml:space="preserve"><xsl:value-of select="$pre"/><xsl:value-of select="normalize-space(.)"/><xsl:value-of select="$post"/></w:t>
+          <w:t>
+            <xsl:attribute name="xml:space">preserve</xsl:attribute>
+            <xsl:value-of select="$pre"/>
+            <xsl:value-of select="normalize-space(.)"/>
+            <xsl:value-of select="$post"/>
+          </w:t>
         </w:r>
       </xsl:otherwise>
     </xsl:choose>
@@ -1010,7 +1022,7 @@
       <!-- Les ancres sont ailleurs -->
       <xsl:when test="starts-with($target, '#')"/>
       <xsl:otherwise>
-        <Relationship xmlns="http://schemas.openxmlformats.org/package/2006/relationships" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/hyperlink" Target="{$target}" TargetMode="External">
+        <Relationship Target="{$target}" TargetMode="External" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/hyperlink" xmlns="http://schemas.openxmlformats.org/package/2006/relationships">
           <xsl:attribute name="Id">
             <xsl:call-template name="id"/>
           </xsl:attribute>
