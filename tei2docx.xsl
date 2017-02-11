@@ -505,10 +505,10 @@
       </xsl:otherwise>
     </xsl:choose>
   </xsl:template>
-  <xsl:template match="tei:argument | tei:entryFree | tei:figure | tei:postscript">
+  <xsl:template match="tei:argument | tei:entryFree  | tei:postscript">
     <xsl:apply-templates select="*"/>
   </xsl:template>
-  <xsl:template match="tei:argument/* | tei:entryFree/* | tei:figure/* | tei:postscript/* | tei:quote/tei:p">
+  <xsl:template match="tei:argument/* | tei:entryFree/* | tei:figure | tei:postscript/* | tei:quote/tei:p">
     <xsl:value-of select="$lf"/>
     <w:p>
       <w:pPr>
@@ -787,16 +787,17 @@
   </xsl:template>
   <!-- citation, de niveau bloc ou caractère -->
   <xsl:template match="tei:quote">
+    <xsl:variable name="inmix" select="../text()[normalize-space(.) != '']|../tei:emph|../tei:hi"/>
     <xsl:choose>
       <!-- conteneur de blocs -->
-      <xsl:when test="not(text()[normalize-space(.) != '']) and (tei:p|tei:l|tei:lg|tei:label)">
+      <xsl:when test="not(text()[normalize-space(.) != '']) and (tei:p|tei:l|tei:lg|tei:label|tei:quote)">
         <xsl:value-of select="$lf"/>
         <xsl:apply-templates>
           <xsl:with-param name="id" select="@xml:id"/>
         </xsl:apply-templates>
       </xsl:when>
-      <!-- niveau caractère -->
-      <xsl:when test="ancestor::tei:p or ancestor::tei:l or parent::tei:cell or ../text()[normalize-space(.) != ''] or ../tei:hi">
+      <!-- niveau caractère ? -->
+      <xsl:when test="ancestor::tei:p or ancestor::tei:l or parent::tei:cell or ../text()[normalize-space(.) != ''] ">
         <xsl:call-template name="anchor"/>
         <xsl:apply-templates>
           <xsl:with-param name="style" select="local-name()"/>

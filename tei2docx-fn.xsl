@@ -44,39 +44,70 @@
       <w:bookmarkEnd w:id="{$noteref}"/>
     </w:hyperlink>
   </xsl:template>
+  <!-- Notes in notes -->
   <xsl:template match="tei:note[ancestor::tei:note]" mode="fn2">
-    <xsl:comment> ??? </xsl:comment>
     <xsl:call-template name="notein">
       <xsl:with-param name="aster" select="true()"/>
     </xsl:call-template>
   </xsl:template>
   <xsl:template name="notein">
     <xsl:param name="aster"/>
+    <xsl:variable name="mixed" select="text()[normalize-space(.) != '']"/>
     <xsl:choose>
       <!-- no mixed content, multi block note -->
-      <xsl:when test="(tei:p | tei:list | tei:quote | tei:l | tei:lg) and not(text()[normalize-space(.) != ''])">
+      <xsl:when test="(tei:p | tei:list | tei:quote | tei:l | tei:lg) and not($mixed)">
         <!-- Bricolage de l’appel sur un bloc à part (?) -->
         <xsl:for-each select="*">
           <xsl:choose>
-            <xsl:when test="self::tei:lg | self::tei:quote | self::tei:list">
+            <xsl:when test="self::tei:quote">
+              <xsl:variable name="pos" select="position()"/>
+              <xsl:choose>
+                <!-- contains blocks -->
+                <xsl:when test="not(text()[normalize-space(.) != '']) and (tei:p|tei:l|tei:lg|tei:label|tei:quote)">
+                  <xsl:for-each select="*">
+                    <xsl:value-of select="$lf"/>
+                    <w:p>
+                      <w:pPr>
+                        <w:pStyle w:val="quote"/>
+                      </w:pPr>
+                      <xsl:if test="$pos = 1 and position() = 1 ">
+                        <xsl:call-template name="noteret">
+                          <xsl:with-param name="aster" select="$aster"/>
+                        </xsl:call-template>
+                      </xsl:if>
+                      <xsl:apply-templates/>
+                    </w:p>
+                  </xsl:for-each>
+                </xsl:when>
+                <xsl:otherwise>
+                  <w:p>
+                    <w:pPr>
+                      <w:pStyle w:val="quote"/>
+                    </w:pPr>
+                    <xsl:if test="$pos = 1">
+                      <xsl:call-template name="noteret">
+                        <xsl:with-param name="aster" select="$aster"/>
+                      </xsl:call-template>
+                    </xsl:if>
+                    <xsl:apply-templates/>
+                  </w:p>
+                </xsl:otherwise>
+              </xsl:choose>
+            </xsl:when>
+            <xsl:when test="self::tei:lg | self::tei:list">
               <xsl:apply-templates select="."/>
             </xsl:when>
-            <xsl:when test="position() = 1">
-              <w:p>
-                <w:pPr>
-                  <w:pStyle w:val="Notedebasdepage"/>
-                </w:pPr>
-                <xsl:call-template name="noteret">
-                  <xsl:with-param name="aster" select="$aster"/>
-                </xsl:call-template>
-                <xsl:apply-templates/>
-              </w:p>
-            </xsl:when>
             <xsl:otherwise>
+              <xsl:value-of select="$lf"/>
               <w:p>
                 <w:pPr>
                   <w:pStyle w:val="Notedebasdepage"/>
                 </w:pPr>
+                <xsl:if test="position() = 1 ">
+                  <xsl:call-template name="noteret">
+                    <xsl:with-param name="aster" select="$aster"/>
+                  </xsl:call-template>
+                </xsl:if>
                 <xsl:apply-templates/>
               </w:p>
             </xsl:otherwise>

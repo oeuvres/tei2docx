@@ -15,37 +15,38 @@ class Toff_Tei2docx {
   static function doCli() {
     array_shift($_SERVER['argv']); // shift first arg, the script filepath
     if (!count($_SERVER['argv'])) exit('
-usage    : php -f Toff_Tei2docx.php srcdir/*.xml (dstdir/)?
+usage    : php -f Toff_Tei2docx.php (dstdir/)? srcdir/*.xml
     ');
-    /*
-    $format = rtrim(array_shift($_SERVER['argv']), '-');
-    if (!isset($flist[$format])) exit('
-format should one of : p5 txt docx
-    ');
-    */
-    $format = "docx";
-    if (!count($_SERVER['argv'])) exit('
-A filepath (or a glob) is needed for transform      
-    ');
-    $srcglob = array_shift($_SERVER['argv']);
-    $dstdir = '';
-    if (count($_SERVER['argv'])) {
-      $dstdir = rtrim(array_shift($_SERVER['argv']), ' /\\') . '/';
-      if (!file_exists($dstdir)) mkdir($dstdir, true);
+
+    $destdir = "";
+    $lastc = substr($_SERVER['argv'][0], -1);
+    if ('/' == $lastc || '\\' == $lastc) {
+      $destdir = array_shift($_SERVER['argv']);
+      $destdir = rtrim($destdir, '/\\').'/';
+      if (!file_exists($destdir)) {
+        mkdir($destdir, 0775, true);
+        @chmod($dir, 0775);  // let @, if www-data is not owner but allowed to write
+      }
     }
-    foreach (glob($srcglob) as $src) {
-      if (!$dstdir) $dstdir = dirname($src) . '/';
-      $dstname = $dstdir . pathinfo($src, PATHINFO_FILENAME);
-      if ($format == 'docx') {
-        $dst = $dstname.'.docx';
-        $i = 1;
-        while (file_exists($dst)) {
-          echo "File $dst already exists.\n";
-          $dst = $dstname . '_' . $i . '.docx';
+
+    while($glob = array_shift($_SERVER['argv']) ) {
+      foreach(glob($glob) as $srcfile) {
+        if (!$destdir) $destdir = dirname( $srcfile ) . '/';
+        $destname = $destdir . pathinfo( $srcfile, PATHINFO_FILENAME);
+        $dest = $destname.'.docx';
+        $i = 0;
+        $rename = $dest;
+        while ( file_exists( $rename ) ) {
+          if ( !$i ) echo "File $rename already exists, ";
           $i++;
+          $rename = $destname . '_' . $i . '.docx';
         }
-        echo "$src > $dst\n";
-        self::docx($src, $dst);
+        if ( $i ) {
+          rename( $dest, $rename );
+          echo "renamed to $rename\n";
+        }
+        echo "$srcfile > $dest\n";
+        self::docx($srcfile, $dest);
       }
     }
 
@@ -69,19 +70,19 @@ A filepath (or a glob) is needed for transform
 
     $xml=self::xsl(dirname(__FILE__).'/tei2docx-comments.xsl', $dom, null, array('filename'=>$filename));
     $zip->addFromString('word/comments.xml', $xml);
-    
+
     $xml=self::xsl(dirname(__FILE__).'/tei2docx.xsl', $dom, null, array('filename'=>$filename));
     $zip->addFromString('word/document.xml', $xml);
-    
+
     $xml=self::xsl(dirname(__FILE__).'/tei2docx-fn.xsl', $dom, null, array('filename'=>$filename));
     $zip->addFromString('word/footnotes.xml', $xml);
 
     $xml=self::xsl(dirname(__FILE__).'/tei2docx-rels.xsl', $dom, null, array('filename'=>$filename));
     $zip->addFromString('word/_rels/document.xml.rels', $xml);
-    
+
     $xml=self::xsl(dirname(__FILE__).'/tei2docx-fnrels.xsl', $dom, null, array('filename'=>$filename));
     $zip->addFromString('word/_rels/footnotes.xml.rels', $xml);
-    
+
     $zip->close();
 
   }
