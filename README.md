@@ -9,4 +9,5 @@ TEI ► docx
       Dans une chaîne de travail, ce logiciel permet de faire contribuer des éditeurs qui ne maitrisent pas l’édition XML/TEI, alors que le texte TEI a déjà été établi, en perdant le moins possible de travail entre les conversions.
       Ainsi des éditeurs critiques peuvent enrichir un texte avec notes dans leur logiciel familier (généralement Microsoft.Word), en évitant les fastidieuses réinsertions de leurs contributions dans les balises.</p>
       
-<p>Suite à la complexité possible des documents XML/TEI, il y a un risque inévitable de produire des fichiers docx non conforme, en ce cas, prévenez le développeur, <a href="javascript:this.href='mailto'+'\x3A'+'frederic.glorieux'+'\x40'+'fictif.org'">Frédéric Glorieux</a> se fera un plaisir d’enrichir son programme d’un nouveau cas.</p>
+Suite à la complexité possible des documents XML/TEI, il y a un risque inévitable de produire des fichiers docx non conforme, en ce cas, envoyez vos fichiers coupable à 
+<frederic.glorieux@fictif.org>.
