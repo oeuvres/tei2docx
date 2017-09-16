@@ -3,24 +3,24 @@
 include( dirname(__FILE__).'/Tei2docx.php' );
 // Soumission en post
 if ( isset($_POST['post']) ) {
-  echo Toff_tei2docx::doPost();
+  echo Reteint_tei2docx::doPost();
   exit();
 }
 ?><!DOCTYPE html>
 <html>
   <head>
     <meta charset="utf-8"/>
-    <title>Toff : TEI vers document office, docx</title>
+    <title>Reteint : TEI vers document office, docx</title>
     <link rel="stylesheet" type="text/css" href="//oeuvres.github.io/Teinte/tei2html.css" />
   </head>
   <body>
     <div id="article">
       <header id="header">
-        <h1>Toff</h1>
+        <h1>Reteint, TEI ► docx</h1>
       </header>
       <div id="contenu">
 
-    <h1>Toff, reprendre du <a href="//www.tei-c.org/release/doc/tei-p5-doc/fr/html/REF-ELEMENTS.html">TEI</a> au traitement de textes (docx)</h1>
+    <h1>Reteint, reprendre du <a href="//www.tei-c.org/release/doc/tei-p5-doc/fr/html/REF-ELEMENTS.html">TEI</a> au traitement de textes (docx)</h1>
     <p class="byline">par <a onmouseover="this.href='mailto'+'\x3A'+'frederic.glorieux'+'\x40'+'fictif.org'" href="#">Frédéric Glorieux</a></p>
     <form enctype="multipart/form-data" method="POST" name="odt">
       <input type="hidden" name="post" value="post"/>
@@ -28,8 +28,14 @@ if ( isset($_POST['post']) ) {
       <input type="submit" name="download" value="Télécharger"/>
     </form>
     <article class="text" style="width: 80ex; ">
-      <p>Ce programme permet de reprendre des fichiers XML/TEI avec un traitement de textes (Microsoft.Word, LibreOffice, OpenOffice, ou autre application acceptant le format docx).
-      Il faut toutefois comprendre, et accepter, que le format XML permet des structures plus complexes que ce qu’autorise une interface bureautique, par exemple sur les attributs, ou les imbrications, si bien que la transformation vers docx peut conduire à des pertes de structure (mais pas de texte). Le logiciel a été testé sur des textes de littérature (poésie, théâtre, roman, théorie avec notes…), le risque de perte est plus important pour par exemple des éditions critiques complexes (ex : plusieurs niveau de notes). Quel que soit le soin porté au programme, il y a un risque inévitable de de fichier docx non conforme (LibreOffice est plus tolérant que Microsoft.Word).</p>
+      <p><a href="https://github.com/oeuvres/Reteint">Reteint</a> transforme un fichier XML/TEI en docx (format traitement de textes compatible avec Microsoft.Word, LibreOffice, OpenOffice…), en assurant un stylage optimal pour un retour du document bureautique vers TEI (avec par exemple <a href="http://github.com/oeuvres/Odette">Odette</a>).
+      Attention cependant, XML/TEI est un format plus complexe que docx, c’est une conversion avec risque de pertes en structure (mais pas en texte).
+      C’est un complément nécessaire à toute bibliothèque TEI, afin de faciliter la réutilisation des textes.
+      Ce logiciel est activement développé et utilisé pour l’édition de textes littéraires (poésie, théâtre, roman, discours…), par exemple sur <a href="https://github.com/oeuvres/">Oeuvres</a>, <a href="https://github.com/dramacode/">Dramacode</a>, <a href="https://github.com/obvil/">Obvil</a>, ou <a href="https://github.com/ebalzac/">eBalzac</a>.
+      Dans une chaîne de travail, ce logiciel permet de faire contribuer des éditeurs qui ne maitrisent pas l’édition XML/TEI, alors que le texte TEI a déjà été établi, en perdant le moins possible de travail entre les conversions.
+      Ainsi des éditeurs critiques peuvent enrichir un texte avec notes dans leur logiciel familier (généralement Microsoft.Word), en évitant les copier/coller fastidieux entre les balises.</p>
+      <p>
+      Suite à la complexité possible des documents XML/TEI, il y a un risque inévitable de produire des fichiers docx non conforme, en ce cas, prévenez le développeur, <a onmouseover="this.href='mailto'+'\x3A'+'frederic.glorieux'+'\x40'+'fictif.org'" href="#">Frédéric Glorieux</a> se fera un plaisir d’enrichir son programme d’un nouveau cas.</p>
     </article>
     </div>
   </body>

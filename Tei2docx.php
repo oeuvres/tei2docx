@@ -8,14 +8,14 @@ set_time_limit(-1);
 if (isset($_SERVER['SCRIPT_FILENAME']) && basename($_SERVER['SCRIPT_FILENAME']) != basename(__FILE__));
 else if (isset($_SERVER['ORIG_SCRIPT_FILENAME']) && realpath($_SERVER['ORIG_SCRIPT_FILENAME']) != realpath(__FILE__));
 // direct command line call, work
-else if (php_sapi_name() == "cli") Toff_Tei2docx::doCli();
+else if (php_sapi_name() == "cli") Reteint_Tei2docx::doCli();
 
-class Toff_Tei2docx {
+class Reteint_Tei2docx {
 
   static function doCli() {
     array_shift($_SERVER['argv']); // shift first arg, the script filepath
     if (!count($_SERVER['argv'])) exit('
-usage    : php -f Toff_Tei2docx.php (dstdir/)? srcdir/*.xml
+usage    : php -f Reteint_Tei2docx.php (dstdir/)? srcdir/*.xml
     ');
 
     $destdir = "";
@@ -73,7 +73,7 @@ usage    : php -f Toff_Tei2docx.php (dstdir/)? srcdir/*.xml
     header('Cache-Control: must-revalidate, post-check=0, pre-check=0');
     header('Pragma: public');
 
-    $destfile = tempnam( dirname( $tmp['tmp_name'] ), "toff");
+    $destfile = tempnam( dirname( $tmp['tmp_name'] ), "Reteint");
     self::docx( $srcfile, $destfile );
     header('Content-Length: ' . filesize( $destfile ) );
     ob_clean();
