@@ -44,33 +44,36 @@
         </w:pPr>
       </w:p>
     </xsl:if>
-    <xsl:if test="local-name(*[local-name() != 'index'][1]) != 'head'">
+    <xsl:if test="local-name(*[not(self::tei:index|self::tei:pb)][1]) != 'head'">
       <w:p>
         <w:pPr>
           <w:pStyle w:val="Titre{count(ancestor-or-self::tei:div)}"/>
         </w:pPr>
         <xsl:call-template name="anchor"/>
-        <!--
         <w:r>
-          <w:t xml:space="preserve">
+          <w:t>
+            <xsl:attribute name="xml:space">preserve</xsl:attribute>
             <xsl:text>[</xsl:text>
             <xsl:choose>
               <xsl:when test="@xml:id">
                 <xsl:value-of select="@xml:id"/>
               </xsl:when>
               <xsl:otherwise>
-                <xsl:value-of select="substring(normalize-space(.), 0, 50)"/>
+                <xsl:variable name="text">
+                  <xsl:apply-templates select="*[not(self::tei:index|self::tei:pb)][1]" mode="text"/>
+                </xsl:variable>
+                <xsl:value-of select="substring(normalize-space($text), 0, 50)"/>
               </xsl:otherwise>
             </xsl:choose>
             <xsl:text>]</xsl:text>
           </w:t>
         </w:r>
-        -->
       </w:p>
     </xsl:if>
     <xsl:comment> <xsl:value-of select="@xml:id"/> </xsl:comment>
-    <xsl:apply-templates select="*[not(self::tei:index)]|comment()"/>
+    <xsl:apply-templates select="*|comment()"/>
   </xsl:template>
+  <xsl:template mode="text" match="tei:note"/>
   <!-- Metadata 
    Fields handled by Odette ,author,bibl,created,creation,contributor,copyeditor,creator,date,edition,editor,idno,issued,keyword,licence,license,publie,publisher,secretairederedaction,source,subject,sujet,title,translator,
   -->
@@ -223,7 +226,8 @@
   </xsl:template>
   <!-- Conserver les identifiants -->
   <xsl:template name="anchor">
-    <!-- identifier of a parent div on first child block -->
+    <xsl:param name="id"/>
+    <!-- identifier of a parent div on first child block (???) -->
     <xsl:if test="../@xml:id and (self::tei:head or not(preceding-sibling::*[. != '']))">
       <w:bookmarkStart w:name="{../@xml:id}">
         <xsl:attribute name="w:id">
@@ -247,18 +251,32 @@
         </xsl:attribute>
       </w:bookmarkEnd>
     </xsl:if>
-    <xsl:if test="@xml:id">
-      <w:bookmarkStart w:name="{@xml:id}">
-        <xsl:attribute name="w:id">
-          <xsl:number count="node()" level="any"/>
-        </xsl:attribute>
-      </w:bookmarkStart>
-      <w:bookmarkEnd>
-        <xsl:attribute name="w:id">
-          <xsl:number count="node()" level="any"/>
-        </xsl:attribute>
-      </w:bookmarkEnd>
-    </xsl:if>
+    <xsl:choose>
+      <xsl:when test="$id">
+        <w:bookmarkStart w:name="{$id}">
+          <xsl:attribute name="w:id">
+            <xsl:number count="node()" level="any"/>
+          </xsl:attribute>
+        </w:bookmarkStart>
+        <w:bookmarkEnd>
+          <xsl:attribute name="w:id">
+            <xsl:number count="node()" level="any"/>
+          </xsl:attribute>
+        </w:bookmarkEnd>
+      </xsl:when>
+      <xsl:when test="@xml:id">
+        <w:bookmarkStart w:name="{@xml:id}">
+          <xsl:attribute name="w:id">
+            <xsl:number count="node()" level="any"/>
+          </xsl:attribute>
+        </w:bookmarkStart>
+        <w:bookmarkEnd>
+          <xsl:attribute name="w:id">
+            <xsl:number count="node()" level="any"/>
+          </xsl:attribute>
+        </w:bookmarkEnd>
+      </xsl:when>
+    </xsl:choose>
   </xsl:template>
   <xsl:template match="tei:head" name="head">
     <xsl:variable name="style">
@@ -284,6 +302,7 @@
       <xsl:call-template name="anchor"/>
       <xsl:apply-templates/>
     </w:p>
+    <!--
     <xsl:if test="../tei:index and not(preceding-sibling::tei:head)">
       <w:p>
         <w:r>
@@ -291,6 +310,8 @@
         </w:r>
       </w:p>
     </xsl:if>
+    -->
+    <xsl:apply-templates select="preceding-sibling::*[self::tei:index|self::tei:pb]"/>
   </xsl:template>
   <xsl:template match="tei:table">
     <xsl:value-of select="$lf"/>
@@ -322,7 +343,7 @@
     <w:tc>
       <xsl:choose>
         <xsl:when test="not(tei:p) and not(tei:list) and not(tei:quote) and not(tei:l)">
-          <xsl:call-template name="p"/>
+          <xsl:call-template name="block"/>
         </xsl:when>
         <xsl:otherwise>
           <xsl:apply-templates/>
@@ -330,17 +351,129 @@
       </xsl:choose>
     </w:tc>
   </xsl:template>
-  <!-- éléments génériques de niveau bloc -->
-  <xsl:template match=" tei:back/* | tei:body/* | tei:cell/tei:dateline | tei:cell/tei:salute | tei:cell/tei:signed | tei:div/* | tei:div1/* | tei:div2/* | tei:div3/* | tei:div4/* | tei:front/* | tei:sp/*" name="block" priority="-1">
-    <xsl:param name="style" select="local-name()"/>
+  <!-- Éléments regroupants -->
+  <xsl:template match="tei:titlePage">
+    <w:p/>
+    <w:p/>
+    <xsl:apply-templates select="*">
+      <xsl:with-param name="border" select="true()"/>
+    </xsl:apply-templates>
+    <w:p/>
+    <w:p/>
+  </xsl:template>
+  <xsl:template match="tei:argument | tei:cit | tei:entryFree  | tei:postscript | tei:docTitle">
+    <xsl:for-each select="*">
+      <xsl:variable name="id">
+        <xsl:if test="position() = 1 and @xml:id">
+          <xsl:value-of select="@xml:id"/>
+        </xsl:if>
+      </xsl:variable>
+      <xsl:call-template name="block">
+        <xsl:with-param name="border" select="true()"/>
+        <xsl:with-param name="parent" select="local-name(..)"/>
+        <xsl:with-param name="id" select="$id"/>
+      </xsl:call-template>
+    </xsl:for-each>
+  </xsl:template>
+  <xsl:template match="tei:epigraph">
+    <!-- pb avec epigraph/cit/quote/p -->
+    <xsl:for-each select=".//tei:p | .//tei:bibl">
+      <xsl:value-of select="$lf"/>
+      <w:p>
+        <w:pPr>
+          <w:pStyle w:val="epigraph"/>
+          <xsl:if test="self::tei:bibl">
+            <w:jc w:val="right"/>
+          </xsl:if>
+        </w:pPr>
+        <xsl:call-template name="anchor"/>
+        <xsl:apply-templates/>
+      </w:p>
+    </xsl:for-each>
+  </xsl:template>
+  <xsl:template match="tei:closer | tei:opener | tei:q | tei:quote">
+    <xsl:param name="border">
+      <xsl:choose>
+        <xsl:when test="self::tei:q | self::tei:quote">border</xsl:when>
+      </xsl:choose>
+    </xsl:param>
+    <xsl:variable name="inmix" select="../text()[normalize-space(.) != '']|../tei:emph|../tei:hi"/>
+    <xsl:choose>
+      <!-- conteneur de blocs -->
+      <xsl:when test=" tei:byline | tei:closer | tei:dateline | tei:l | tei:label | tei:lg | tei:opener | tei:p | tei:salute | tei:signed  ">
+        <w:p/>
+        <xsl:apply-templates select="*">
+          <xsl:with-param name="border" select="$border"/>
+          <xsl:with-param name="parent" select="local-name(.)"/>
+        </xsl:apply-templates>
+        <w:p/>
+      </xsl:when>
+      <!-- 
+ancestor::tei:p or ancestor::tei:l or parent::tei:cell
+      -->
+      <!-- bloc -->
+      <xsl:when test="parent::tei:back | parent::tei:body | parent::tei:cell | parent::tei:div | parent::tei:div1 | parent::tei:div2 | parent::tei:div3 | parent::tei:div4 | parent::tei:div5 | parent::tei:div6 | parent::tei:div7 | parent::tei:div8 | parent::tei:div9 | parent::tei:front">
+        <xsl:call-template name="block"/>
+      </xsl:when>
+      <!-- inline -->
+      <xsl:otherwise>
+        <xsl:call-template name="inline"/>
+      </xsl:otherwise>
+    </xsl:choose>
+  </xsl:template>
+    <!-- éléments génériques de niveau bloc -->
+  <xsl:template match=" tei:back/* | tei:body/* | tei:byline | tei:dateline | tei:div/* | tei:div1/* | tei:div2/* | tei:div3/* | tei:div4/* | tei:front/* | tei:label | tei:p  | tei:salute | tei:signed | tei:sp/* | tei:titlePage/* | tei:titlePart" name="block" priority="-1">
+    <xsl:param name="parent"/>
+    <xsl:param name="border"/>
+    <xsl:param name="fill"/>
+    <xsl:param name="style">
+      <xsl:choose>
+        <xsl:when test="self::tei:p and parent::tei:note">Notedebasdepage</xsl:when>
+        <xsl:when test="$parent != '' and self::tei:p">
+          <xsl:value-of select="$parent"/>
+        </xsl:when>
+        <xsl:otherwise>
+          <xsl:value-of select="local-name()"/>
+        </xsl:otherwise>
+      </xsl:choose>
+    </xsl:param>
     <xsl:value-of select="$lf"/>
     <w:p>
       <w:pPr>
         <w:pStyle w:val="{$style}"/>
+        <xsl:if test="$border != ''">
+          <w:pBdr>
+            <w:top w:color="auto" w:space="6" w:sz="2" w:val="single"/>
+            <w:left w:color="auto" w:space="6" w:sz="2" w:val="single"/>
+            <w:bottom w:color="auto" w:space="6" w:sz="2" w:val="single"/>
+            <w:right w:color="auto" w:space="6" w:sz="2" w:val="single"/>
+          </w:pBdr>
+        </xsl:if>
+        <xsl:if test="$fill != ''">
+          <w:pBdr>
+            <w:top w:color="auto" w:space="5" w:sz="2" w:val="none"/>
+            <w:left w:color="auto" w:space="5" w:sz="2" w:val="none"/>
+            <w:bottom w:color="auto" w:space="5" w:sz="2" w:val="none"/>
+            <w:right w:color="auto" w:space="5" w:sz="2" w:val="none"/>
+          </w:pBdr>
+          <w:shd w:color="auto" w:fill="{$fill}" w:val="clear"/>
+        </xsl:if>
+        <xsl:call-template name="rend-p"/>
       </w:pPr>
       <xsl:call-template name="anchor"/>
+      <xsl:if test="parent::tei:note and not(preceding-sibling::*)">
+        <w:r>
+          <w:rPr>
+            <w:rStyle w:val="Appelnotedebasdep"/>
+          </w:rPr>
+          <w:footnoteRef/>
+          <w:tab/>
+        </w:r>
+      </xsl:if>
       <xsl:apply-templates/>
     </w:p>
+    
+    
   </xsl:template>
   <xsl:template match="tei:l" name="l">
     <xsl:value-of select="$lf"/>
@@ -505,20 +638,6 @@
       </xsl:otherwise>
     </xsl:choose>
   </xsl:template>
-  <xsl:template match="tei:argument | tei:entryFree  | tei:postscript">
-    <xsl:apply-templates select="*"/>
-  </xsl:template>
-  <xsl:template match="tei:argument/* | tei:entryFree/* | tei:figure | tei:postscript/* | tei:quote/tei:p">
-    <xsl:value-of select="$lf"/>
-    <w:p>
-      <w:pPr>
-        <w:pStyle w:val="{local-name()}"/>
-        <xsl:call-template name="rend-p"/>
-      </w:pPr>
-      <xsl:call-template name="anchor"/>
-      <xsl:apply-templates/>
-    </w:p>
-  </xsl:template>
   <!-- Style sémantique de niveau bloc ou caractère -->
   <xsl:template match="tei:bibl | tei:stage">
     <xsl:value-of select="$lf"/>
@@ -558,45 +677,7 @@
       </xsl:otherwise>
     </xsl:choose>
   </xsl:template>
-  <xsl:template match="tei:quote/tei:label">
-    <xsl:value-of select="$lf"/>
-    <w:p>
-      <w:pPr>
-        <w:pStyle w:val="quote"/>
-        <w:ind w:firstLine="0"/>
-        <w:jc w:val="center"/>
-      </w:pPr>
-      <xsl:call-template name="anchor"/>
-      <xsl:apply-templates/>
-    </w:p>
-  </xsl:template>
-  <xsl:template match="tei:p | tei:list[@type='dialogue']/tei:item" name="p">
-    <xsl:value-of select="$lf"/>
-    <w:p>
-      <w:pPr>
-        <xsl:choose>
-          <xsl:when test="parent::tei:note">
-            <w:pStyle w:val="Notedebasdepage"/>
-          </xsl:when>
-          <xsl:otherwise>
-            <w:pStyle w:val="p"/>
-          </xsl:otherwise>
-        </xsl:choose>
-        <xsl:call-template name="rend-p"/>
-      </w:pPr>
-      <xsl:call-template name="anchor"/>
-      <xsl:if test="parent::tei:note and not(preceding-sibling::*)">
-        <w:r>
-          <w:rPr>
-            <w:rStyle w:val="Appelnotedebasdep"/>
-          </w:rPr>
-          <w:footnoteRef/>
-          <w:tab/>
-        </w:r>
-      </xsl:if>
-      <xsl:apply-templates/>
-    </w:p>
-  </xsl:template>
+
   <xsl:template match="tei:speaker">
     <xsl:value-of select="$lf"/>
     <w:p>
@@ -736,7 +817,7 @@
     </xsl:choose>
   </xsl:template>
   <!-- Char level generic behaviors, priority 0 is needed -->
-  <xsl:template match="tei:item/* | tei:l/* | tei:p/* | tei:head/* | tei:emph | tei:hi | tei:name | tei:resp" priority="0">
+  <xsl:template match="tei:item/* | tei:l/* | tei:p/* | tei:head/* | tei:emph | tei:hi | tei:name | tei:resp" priority="0" name="inline">
     <xsl:param name="style"/>
     <w:r>
       <xsl:variable name="rPr">
@@ -785,59 +866,15 @@
       </w:t>
     </w:r>
   </xsl:template>
-  <!-- citation, de niveau bloc ou caractère -->
-  <xsl:template match="tei:quote">
-    <xsl:variable name="inmix" select="../text()[normalize-space(.) != '']|../tei:emph|../tei:hi"/>
-    <xsl:choose>
-      <!-- conteneur de blocs -->
-      <xsl:when test="not(text()[normalize-space(.) != '']) and (tei:p|tei:l|tei:lg|tei:label|tei:quote)">
-        <xsl:value-of select="$lf"/>
-        <xsl:apply-templates>
-          <xsl:with-param name="id" select="@xml:id"/>
-        </xsl:apply-templates>
-      </xsl:when>
-      <!-- niveau caractère ? -->
-      <xsl:when test="ancestor::tei:p or ancestor::tei:l or parent::tei:cell or ../text()[normalize-space(.) != ''] ">
-        <xsl:call-template name="anchor"/>
-        <xsl:apply-templates>
-          <xsl:with-param name="style" select="local-name()"/>
-        </xsl:apply-templates>
-      </xsl:when>
-      <!-- bloc -->
-      <xsl:otherwise>
-        <xsl:value-of select="$lf"/>
-        <w:p>
-          <w:pPr>
-            <w:pStyle w:val="{local-name()}"/>
-            <xsl:call-template name="rend-p"/>
-          </w:pPr>
-          <xsl:call-template name="anchor"/>
-          <xsl:apply-templates/>
-        </w:p>
-      </xsl:otherwise>
-    </xsl:choose>
-  </xsl:template>
-  <!-- -->
-  <xsl:template match="tei:epigraph">
-    <!-- pb avec epigraph/cit/quote/p -->
-    <xsl:for-each select=".//tei:p | .//tei:bibl">
-      <xsl:value-of select="$lf"/>
-      <w:p>
-        <w:pPr>
-          <w:pStyle w:val="epigraph"/>
-          <xsl:if test="self::tei:bibl">
-            <w:jc w:val="right"/>
-          </xsl:if>
-        </w:pPr>
-        <xsl:call-template name="anchor"/>
-        <xsl:apply-templates/>
-      </w:p>
-    </xsl:for-each>
-  </xsl:template>
-  <xsl:template match="tei:titlePage">
-    <xsl:for-each select="*">
-      <xsl:call-template name="block"/>
-    </xsl:for-each>
+  <xsl:template match="tei:title">
+    <w:r>
+      <w:rPr>
+        <w:rStyle w:val="title-c"/>
+      </w:rPr>
+      <w:t>
+        <xsl:value-of select="."/>
+      </w:t>
+    </w:r>
   </xsl:template>
   <xsl:template match="tei:hi[starts-with(@rend, 'sup')]">
     <xsl:param name="style"/>
@@ -861,16 +898,6 @@
           <w:rStyle w:val="{$style}"/>
         </xsl:if>
         <w:vertAlign w:val="subscript"/>
-      </w:rPr>
-      <w:t>
-        <xsl:value-of select="."/>
-      </w:t>
-    </w:r>
-  </xsl:template>
-  <xsl:template match="tei:title">
-    <w:r>
-      <w:rPr>
-        <w:rStyle w:val="title-c"/>
       </w:rPr>
       <w:t>
         <xsl:value-of select="."/>

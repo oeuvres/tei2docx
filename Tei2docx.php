@@ -51,6 +51,39 @@ usage    : php -f Toff_Tei2docx.php (dstdir/)? srcdir/*.xml
     }
 
   }
+
+  /**
+   *  Apply code to an uploaded file
+   */
+  public static function doPost( $download=true ) {
+    if( !count($_FILES) ) return false;
+    reset($_FILES);
+    $tmp=current($_FILES);
+    if ( $tmp['name'] && !$tmp['tmp_name'] ) {
+      echo $tmp['name'],' seems bigger than allowed size for upload in your php.ini : upload_max_filesize=',ini_get('upload_max_filesize'),', post_max_size=',ini_get('post_max_size');
+      return false;
+    }
+    $srcfile=$tmp['tmp_name'];
+    if ( $tmp['name'] ) $destname=substr($tmp['name'], 0, strrpos($tmp['name'], '.')).".docx";
+    else $destname="tei.docx";
+    header('Content-Type: application/vnd.openxmlformats-officedocument.wordprocessingml.document');
+    header('Content-Disposition: attachment; filename="'.$destname );
+    header('Content-Description: File Transfer');
+    header('Expires: 0');
+    header('Cache-Control: must-revalidate, post-check=0, pre-check=0');
+    header('Pragma: public');
+
+    $destfile = tempnam( dirname( $tmp['tmp_name'] ), "toff");
+    self::docx( $srcfile, $destfile );
+    header('Content-Length: ' . filesize( $destfile ) );
+    ob_clean();
+    flush();
+    readfile( $destfile );
+    unlink( $destfile );
+    exit();
+  }
+
+
   static function dom($src, $xml="") {
     $dom = new DOMDocument("1.0", "UTF-8");
     $dom->preserveWhiteSpace = false;
