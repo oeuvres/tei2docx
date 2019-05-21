@@ -10,6 +10,9 @@
     <w:document>
       <w:body>
         <xsl:apply-templates select="*"/>
+        <w:sectPr>
+          <w:pgMar w:top="1418" w:right="567" w:bottom="1418" w:left="851" w:header="0" w:footer="0" w:gutter="0"/>
+        </w:sectPr>
       </w:body>
     </w:document>
   </xsl:template>
@@ -698,11 +701,7 @@ ancestor::tei:p or ancestor::tei:l or parent::tei:cell
           <xsl:when test="ancestor::tei:label"/>
           <xsl:when test="ancestor::tei:head"/>
           <xsl:when test="parent::*/@rend[contains(., 'center')]"/>
-          <xsl:otherwise>
-            <w:r>
-              <w:tab/>
-            </w:r>
-          </xsl:otherwise>
+
         </xsl:choose>
         <xsl:value-of select="$lf"/>
         <w:r>
@@ -889,6 +888,23 @@ ancestor::tei:p or ancestor::tei:l or parent::tei:cell
         <xsl:value-of select="."/>
       </w:t>
     </w:r>
+  </xsl:template>
+  <xsl:template match="tei:space">
+        <xsl:choose>
+          <xsl:when test="@quantity">
+            <w:r>
+              <w:t>
+                <xsl:attribute name="xml:space">preserve</xsl:attribute>
+                <xsl:value-of select="substring('                                                   ', 1, @quantity)"/>
+              </w:t>
+            </w:r>
+          </xsl:when>
+          <xsl:otherwise>
+            <w:r>
+              <w:tab/>
+            </w:r>
+          </xsl:otherwise>
+        </xsl:choose>
   </xsl:template>
   <xsl:template match="tei:hi[starts-with(@rend, 'sub')]">
     <xsl:param name="style"/>
