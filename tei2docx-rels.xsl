@@ -38,7 +38,7 @@
       <Relationship Id="rId9" Target="fontTable.xml" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/fontTable"/>
       <Relationship Id="rId12" Target="comments.xml" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/comments"/>
       <!-- do not register targets of links in notes -->
-      <xsl:for-each select=".//tei:ref | .//tei:graphic[@url]">
+      <xsl:for-each select=".//tei:ref | .//tei:graphic">
         <xsl:choose>
           <xsl:when test="not(ancestor::tei:note)">
             <xsl:call-template name="rel"/>

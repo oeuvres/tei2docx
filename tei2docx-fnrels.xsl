@@ -29,7 +29,7 @@
     </Relationships>
   </xsl:template>
   <xsl:template match="tei:note">
-    <xsl:for-each select=".//tei:ref[@target] | .//tei:graphic[@url]">
+    <xsl:for-each select=".//tei:ref | .//tei:graphic">
       <xsl:call-template name="rel"/>
     </xsl:for-each>
   </xsl:template>
