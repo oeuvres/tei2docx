@@ -432,9 +432,11 @@ ancestor::tei:p or ancestor::tei:l or parent::tei:cell
     <xsl:param name="style">
       <xsl:choose>
         <xsl:when test="self::tei:p and parent::tei:note">Notedebasdepage</xsl:when>
+        <!--
         <xsl:when test="$parent != '' and self::tei:p">
           <xsl:value-of select="$parent"/>
         </xsl:when>
+        -->
         <xsl:otherwise>
           <xsl:value-of select="local-name()"/>
         </xsl:otherwise>

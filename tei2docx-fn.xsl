@@ -138,7 +138,10 @@
           <xsl:number count="node()" level="any"/>
         </xsl:variable>
         <w:r>
-          <w:tab/>
+          <w:t>
+            <xsl:attribute name="xml:space">preserve</xsl:attribute>
+            <xsl:text> </xsl:text>
+          </w:t>
         </w:r>
         <w:hyperlink w:anchor="{$noteref}">
           <w:bookmarkStart w:name="{$id}" w:id="{$id}"/>
@@ -160,7 +163,10 @@
             <w:rStyle w:val="Appelnotedebasdep"/>
           </w:rPr>
           <w:footnoteRef/>
-          <w:tab/>
+          <w:t>
+            <xsl:attribute name="xml:space">preserve</xsl:attribute>
+            <xsl:text> </xsl:text>
+          </w:t>
         </w:r>
       </xsl:otherwise>
     </xsl:choose>
