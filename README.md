@@ -2,7 +2,7 @@
 
 TEI ► docx
 
-<p><a href="https://github.com/oeuvres/Reteint">Reteint</a> transforme un fichier XML/TEI en docx (format traitement de textes compatible avec Microsoft.Word, LibreOffice, OpenOffice…), en assurant un stylage optimal pour un retour du document bureautique vers TEI (avec par exemple <a href="http://github.com/oeuvres/Odette">Odette</a>).
+<p><a href="https://github.com/oeuvres/tei2docx">tei2docx</a> transforme un fichier XML/TEI en docx (format traitement de textes compatible avec Microsoft.Word, LibreOffice, OpenOffice…), en assurant un stylage optimal pour un retour du document bureautique vers TEI (avec par exemple <a href="http://github.com/oeuvres/Odette">Odette</a>).
       Attention cependant, XML/TEI est un format plus complexe que docx, c’est une conversion avec risque de pertes (pertes dans les balises, notamment les attributs et les imbrications complexes).
       C’est un complément nécessaire à toute bibliothèque TEI, afin de faciliter la réutilisation des textes.
       Ce logiciel est activement développé et utilisé pour l’édition de textes littéraires (poésie, théâtre, roman, discours…), par exemple sur <a href="https://github.com/oeuvres/">Oeuvres</a>, <a href="https://github.com/dramacode/">Dramacode</a>, <a href="https://github.com/obvil/">Obvil</a>, ou <a href="https://github.com/ebalzac/">eBalzac</a>.
