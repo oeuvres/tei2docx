@@ -1,4 +1,4 @@
-# Reteint
+# tei2docx
 
 TEI ► docx
 
