@@ -15,38 +15,37 @@ class Reteint_Tei2docx {
   static function doCli() {
     array_shift($_SERVER['argv']); // shift first arg, the script filepath
     if (!count($_SERVER['argv'])) exit('
-usage    : php -f Reteint_Tei2docx.php (dstdir/)? srcdir/*.xml
+usage    : php -f tei2docx.php (dstdir/)? srcdir/*.xml
     ');
 
-    $destdir = "";
+    $dstdir = "";
     $lastc = substr($_SERVER['argv'][0], -1);
     if ('/' == $lastc || '\\' == $lastc) {
-      $destdir = array_shift($_SERVER['argv']);
-      $destdir = rtrim($destdir, '/\\').'/';
-      if (!file_exists($destdir)) {
-        mkdir($destdir, 0775, true);
+      $dstdir = array_shift($_SERVER['argv']);
+      $dstdir = rtrim($dstdir, '/\\').'/';
+      if (!file_exists($dstdir)) {
+        mkdir($dstdir, 0775, true);
         @chmod($dir, 0775);  // let @, if www-data is not owner but allowed to write
       }
     }
 
     while($glob = array_shift($_SERVER['argv']) ) {
       foreach(glob($glob) as $srcfile) {
-        if (!$destdir) $destdir = dirname( $srcfile ) . '/';
-        $destname = $destdir . pathinfo( $srcfile, PATHINFO_FILENAME);
-        $dest = $destname.'.docx';
+        $dstname = $dstdir . pathinfo( $srcfile, PATHINFO_FILENAME);
+        $dst = $dstname.'.docx';
         $i = 0;
-        $rename = $dest;
+        $rename = $dst;
         while ( file_exists( $rename ) ) {
           if ( !$i ) echo "File $rename already exists, ";
           $i++;
-          $rename = $destname . '_' . $i . '.docx';
+          $rename = $dstname . '_' . $i . '.docx';
         }
         if ( $i ) {
-          rename( $dest, $rename );
+          rename( $dst, $rename );
           echo "renamed to $rename\n";
         }
-        echo "$srcfile > $dest\n";
-        self::docx($srcfile, $dest);
+        echo "$srcfile > $dst\n";
+        self::docx($srcfile, $dst);
       }
     }
 
@@ -64,22 +63,22 @@ usage    : php -f Reteint_Tei2docx.php (dstdir/)? srcdir/*.xml
       return false;
     }
     $srcfile=$tmp['tmp_name'];
-    if ( $tmp['name'] ) $destname=substr($tmp['name'], 0, strrpos($tmp['name'], '.')).".docx";
-    else $destname="tei.docx";
+    if ( $tmp['name'] ) $dstname=substr($tmp['name'], 0, strrpos($tmp['name'], '.')).".docx";
+    else $dstname="tei.docx";
     header('Content-Type: application/vnd.openxmlformats-officedocument.wordprocessingml.document');
-    header('Content-Disposition: attachment; filename="'.$destname );
+    header('Content-Disposition: attachment; filename="'.$dstname );
     header('Content-Description: File Transfer');
     header('Expires: 0');
     header('Cache-Control: must-revalidate, post-check=0, pre-check=0');
     header('Pragma: public');
 
-    $destfile = tempnam( dirname( $tmp['tmp_name'] ), "Reteint");
-    self::docx( $srcfile, $destfile );
-    header('Content-Length: ' . filesize( $destfile ) );
+    $dstfile = tempnam( dirname( $tmp['tmp_name'] ), "Reteint");
+    self::docx( $srcfile, $dstfile );
+    header('Content-Length: ' . filesize( $dstfile ) );
     ob_clean();
     flush();
-    readfile( $destfile );
-    unlink( $destfile );
+    readfile( $dstfile );
+    unlink( $dstfile );
     exit();
   }
 
@@ -101,19 +100,19 @@ usage    : php -f Reteint_Tei2docx.php (dstdir/)? srcdir/*.xml
     $zip = new ZipArchive;
     $zip->open($dst);
 
-    $xml=self::xsl(dirname(__FILE__).'/tei2docx-comments.xsl', $dom, null, array('filename'=>$filename));
+    $xml=self::xsl(dirname(__FILE__).'/xsl/tei2docx-comments.xsl', $dom, null, array('filename'=>$filename));
     $zip->addFromString('word/comments.xml', $xml);
 
-    $xml=self::xsl(dirname(__FILE__).'/tei2docx.xsl', $dom, null, array('filename'=>$filename));
+    $xml=self::xsl(dirname(__FILE__).'/xsl/tei2docx.xsl', $dom, null, array('filename'=>$filename));
     $zip->addFromString('word/document.xml', $xml);
 
-    $xml=self::xsl(dirname(__FILE__).'/tei2docx-fn.xsl', $dom, null, array('filename'=>$filename));
+    $xml=self::xsl(dirname(__FILE__).'/xsl/tei2docx-fn.xsl', $dom, null, array('filename'=>$filename));
     $zip->addFromString('word/footnotes.xml', $xml);
 
-    $xml=self::xsl(dirname(__FILE__).'/tei2docx-rels.xsl', $dom, null, array('filename'=>$filename));
+    $xml=self::xsl(dirname(__FILE__).'/xsl/tei2docx-rels.xsl', $dom, null, array('filename'=>$filename));
     $zip->addFromString('word/_rels/document.xml.rels', $xml);
 
-    $xml=self::xsl(dirname(__FILE__).'/tei2docx-fnrels.xsl', $dom, null, array('filename'=>$filename));
+    $xml=self::xsl(dirname(__FILE__).'/xsl/tei2docx-fnrels.xsl', $dom, null, array('filename'=>$filename));
     $zip->addFromString('word/_rels/footnotes.xml.rels', $xml);
 
     $zip->close();

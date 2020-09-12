@@ -425,7 +425,7 @@ ancestor::tei:p or ancestor::tei:l or parent::tei:cell
     </xsl:choose>
   </xsl:template>
     <!-- éléments génériques de niveau bloc -->
-  <xsl:template match=" tei:back/* | tei:body/* | tei:byline | tei:dateline | tei:div/* | tei:div1/* | tei:div2/* | tei:div3/* | tei:div4/* | tei:front/* | tei:label | tei:p  | tei:salute | tei:signed | tei:sp/* | tei:titlePage/* | tei:titlePart" name="block" priority="-1">
+  <xsl:template match=" tei:ab | tei:back/* | tei:body/* | tei:byline | tei:dateline | tei:div/* | tei:div1/* | tei:div2/* | tei:div3/* | tei:div4/* | tei:front/* | tei:label | tei:p  | tei:salute | tei:signed | tei:sp/* | tei:titlePage/* | tei:titlePart" name="block" priority="-1">
     <xsl:param name="parent"/>
     <xsl:param name="border"/>
     <xsl:param name="fill"/>
@@ -715,7 +715,7 @@ ancestor::tei:p or ancestor::tei:l or parent::tei:cell
   <!-- saut de page -->
   <xsl:template match="tei:pb">
     <xsl:choose>
-      <xsl:when test="parent::tei:body | parent::tei:cit | parent::tei:div | parent::tei:div1 | parent::tei:div2 | parent::tei:div3 | parent::tei:div4 | parent::tei:div5 | parent::tei:div6 | parent::tei:div7 | parent::tei:div8 | parent::tei:div9 | parent::tei:quote[parent::tei:div] | parent::tei:sp">
+      <xsl:when test="parent::tei:body | parent::tei:cit | parent::tei:div | parent::tei:div1 | parent::tei:div2 | parent::tei:div3 | parent::tei:div4 | parent::tei:div5 | parent::tei:div6 | parent::tei:div7 | parent::tei:div8 | parent::tei:div9 | parent::tei:list | parent::tei:listBibl | parent::tei:quote[parent::tei:div] | parent::tei:sp">
         <w:p>
           <xsl:call-template name="anchor"/>
           <w:r>
